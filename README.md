@@ -38,7 +38,10 @@ REVERB_PORT=8080
 REVERB_SCHEME=http
 ```
 
-> **Note on Reverb credentials:** `REVERB_APP_KEY` and `REVERB_APP_SECRET` are values you invent yourself — they are not issued by any service. `REVERB_APP_KEY` must match `WS_KEY` in the Flutter config. `REVERB_APP_SECRET` and `REVERB_APP_ID` are server-side only and never shared with the client.
+> **Note on Reverb credentials:**
+> - `REVERB_APP_KEY` — a string you make up. Must match `WS_KEY` in the Flutter config. Used by the client to identify which app it is connecting to.
+> - `REVERB_APP_SECRET` — a string you make up. **Never shared with Flutter.** When Flutter subscribes to a presence channel, Laravel signs the auth response with this secret (HMAC). Reverb then verifies that signature to confirm the auth response was not forged. It is purely a Laravel ↔ Reverb shared secret.
+> - `REVERB_APP_ID` — a numeric identifier for the app inside Reverb. Server-side only.
 
 ### 3. Run migrations
 ```bash
@@ -58,6 +61,8 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 ```
 
 The API is now available at `http://<your-local-ip>:8000` and the WebSocket server at `ws://<your-local-ip>:8080`.
+
+> **Why `0.0.0.0`?** Your machine has multiple network interfaces — `127.0.0.1` (loopback, only reachable from the same machine) and your LAN IP e.g. `192.168.x.x` (reachable from other devices on the network). Using `0.0.0.0` tells the server to listen on **all** interfaces at once, so both your machine and other devices (phone, tablet) on the same Wi-Fi can connect. Using `127.0.0.1` would make the server invisible to any other device.
 
 ---
 
