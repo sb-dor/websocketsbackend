@@ -1,3 +1,66 @@
+## Get Started
+
+### Requirements
+- PHP 8.2+
+- Composer
+- MySQL (or any supported database)
+
+### 1. Install dependencies
+```bash
+composer install
+```
+
+### 2. Configure environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit `.env` and set your database credentials and local IP:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ws_chat
+DB_USERNAME=root
+DB_PASSWORD=
+
+APP_URL=http://192.168.100.96
+
+BROADCAST_CONNECTION=reverb
+QUEUE_CONNECTION=sync
+
+REVERB_APP_ID=any_numeric_id_you_choose
+REVERB_APP_KEY=any_string_you_make_up
+REVERB_APP_SECRET=any_secret_you_make_up
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+```
+
+> **Note on Reverb credentials:** `REVERB_APP_KEY` and `REVERB_APP_SECRET` are values you invent yourself — they are not issued by any service. `REVERB_APP_KEY` must match `WS_KEY` in the Flutter config. `REVERB_APP_SECRET` and `REVERB_APP_ID` are server-side only and never shared with the client.
+
+### 3. Run migrations
+```bash
+php artisan migrate
+```
+
+### 4. Start servers
+
+Open two terminals:
+
+```bash
+# Terminal 1 — HTTP API (port 8000)
+php artisan serve --host=0.0.0.0 --port=8000
+
+# Terminal 2 — WebSocket server (port 8080)
+php artisan reverb:start --host=0.0.0.0 --port=8080
+```
+
+The API is now available at `http://<your-local-ip>:8000` and the WebSocket server at `ws://<your-local-ip>:8080`.
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
