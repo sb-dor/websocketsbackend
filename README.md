@@ -62,6 +62,29 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 
 The API is now available at `http://<your-local-ip>:8000` and the WebSocket server at `ws://<your-local-ip>:8080`.
 
+> **How channel authentication works:** Presence channels are private. When Flutter subscribes, Reverb asks it to prove access by hitting `POST /api/broadcasting/auth` with a Bearer token. `Broadcast::routes(['middleware' => ['auth:sanctum']])` in `routes/api.php` registers this endpoint automatically. Laravel verifies the token, checks `routes/channels.php` to decide if the user is allowed, then signs the response with `REVERB_APP_SECRET`. Reverb verifies the signature and allows the subscription.
+>
+> **Important:** Laravel strips the `presence-` / `private-` prefix before matching `channels.php`. Flutter uses `presence-room.{code}`, so `channels.php` must define `room.{code}` — not `presence-room.{code}`.
+>
+> **Channel types:**
+>
+> | | Auth required | Knows who's subscribed | Name prefix |
+> |---|---|---|---|
+> | Public | No | No | `channel-name` |
+> | Private | Yes | No | `private-` |
+> | Presence | Yes | Yes | `presence-` |
+>
+> Private and presence use the exact same auth mechanism. The only difference is what `channels.php` returns: `true/false` for private, a user info array for presence. Returning an array tells Reverb to maintain a live member list and fire `pusher:member_added` / `pusher:member_removed` events.
+>
+> **The prefix IS the declaration** — the prefix in the channel name is how the client and Reverb determine the channel type. Laravel **strips the prefix** before matching `channels.php`, so `private-room.ABC` and `presence-room.ABC` both match the same base rule:
+> ```php
+> Broadcast::channel('room.{code}', function ($user, $code) {
+>     // return true/false → private channel behaviour
+>     // return array      → presence channel behaviour (member info)
+> });
+> ```
+> Public channels need no `channels.php` entry — they require no auth.
+
 > **Why `0.0.0.0`?** Your machine has multiple network interfaces — `127.0.0.1` (loopback, only reachable from the same machine) and your LAN IP e.g. `192.168.x.x` (reachable from other devices on the network). Using `0.0.0.0` tells the server to listen on **all** interfaces at once, so both your machine and other devices (phone, tablet) on the same Wi-Fi can connect. Using `127.0.0.1` would make the server invisible to any other device.
 
 ---
