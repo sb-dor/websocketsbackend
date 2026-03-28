@@ -62,6 +62,16 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 
 The API is now available at `http://<your-local-ip>:8000` and the WebSocket server at `ws://<your-local-ip>:8080`.
 
+---
+
+## What is Pusher?
+
+[pusher.com](https://pusher.com) is a **paid cloud service** that invented the Pusher WebSocket protocol — the message format, channel naming rules (`private-`, `presence-`), the auth flow, and everything around it. It became so widely adopted that the protocol itself turned into an open standard.
+
+**Laravel Reverb** implements the same Pusher protocol as a self-hosted server. Instead of paying pusher.com to manage the infrastructure, you run your own. Any Pusher-compatible client (like `dart_pusher_channels` in Flutter) works with it out of the box.
+
+Reverb is free because you provide the hardware. Pusher.com charges because they do.
+
 > **How channel authentication works:** Presence channels are private. When Flutter subscribes, Reverb asks it to prove access by hitting `POST /api/broadcasting/auth` with a Bearer token. `Broadcast::routes(['middleware' => ['auth:sanctum']])` in `routes/api.php` registers this endpoint automatically. Laravel verifies the token, checks `routes/channels.php` to decide if the user is allowed, then signs the response with `REVERB_APP_SECRET`. Reverb verifies the signature and allows the subscription.
 >
 > **Important:** Laravel strips the `presence-` / `private-` prefix before matching `channels.php`. Flutter uses `presence-room.{code}`, so `channels.php` must define `room.{code}` — not `presence-room.{code}`.
