@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\MessageSent;
+use App\Events\TypingEvent;
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\Room;
@@ -28,7 +29,7 @@ class MessageController extends Controller
             ->get()
             ->reverse()
             ->values()
-            ->map(fn (Message $msg) => $this->formatMessage($msg));
+            ->map(fn(Message $msg) => $this->formatMessage($msg));
 
         return response()->json($messages);
     }
@@ -57,6 +58,31 @@ class MessageController extends Controller
         broadcast(new MessageSent($message));
 
         return response()->json($this->formatMessage($message), 201);
+    }
+
+
+    public function typing(Request $request, string $code)
+    {
+        $room = Room::where('code', $code)->firstOrFail();
+        abort_unless(
+            $room->members()->where('user_id', $request->user()->id)->exists(),
+            403,
+            'You are not a member of this room.'
+        );
+        $user = $request->user();
+        broadcast(new TypingEvent($code, $user->name, $user->id, true));
+    }
+
+    public function stopTyping(Request $request, string $code)
+    {
+        $room = Room::where('code', $code)->firstOrFail();
+        abort_unless(
+            $room->members()->where('user_id', $request->user()->id)->exists(),
+            403,
+            'You are not a member of this room.'
+        );
+        $user = $request->user();
+        broadcast(new TypingEvent($code, $user->name, $user->id, false));
     }
 
     private function formatMessage(Message $message): array

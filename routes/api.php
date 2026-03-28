@@ -27,4 +27,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Messages
     Route::get('/rooms/{code}/messages',  [MessageController::class, 'index']);
     Route::post('/rooms/{code}/messages', [MessageController::class, 'store']);
+    Route::post('/rooms/{code}/typing', [MessageController::class, 'typing']);
+    Route::post('/rooms/{code}/stop-typing', [MessageController::class, 'stopTyping']);
 });
